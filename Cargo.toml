@@ -1,0 +1,11 @@
+[package]
+name = "stupid_resampler"
+description = "A resampler that takes an arbitrary input and upsamples or downsamples appropriately"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.5.8", features = ["derive"] }
+csv = "1.3.0"
+num = "0.4.3"
+rustfft = "6.2.0"
