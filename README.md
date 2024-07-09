@@ -2,9 +2,9 @@
 Resampler is a resampling program that resamples any supported file at the desired ratio using the desired interpolation algorithm.
 
 ## Table of Contents
-- [File Types](#file_types)
-- [Interpolation Algorithms](#interpolation_algorithms)
-- [Potential Features](#potential_features)
+- [File Types](#file-types)
+- [Interpolation Algorithms](#interpolation-algorithms)
+- [Potential Features](#potential-features)
 - [Building](#building)
 - [Usage](#usage)
 - [License](#license)
