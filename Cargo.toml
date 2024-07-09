@@ -1,5 +1,5 @@
 [package]
-name = "stupid_resampler"
+name = "resampler"
 description = "A resampler that takes an arbitrary input and upsamples or downsamples appropriately"
 version = "0.1.0"
 edition = "2021"
