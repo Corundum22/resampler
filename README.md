@@ -23,7 +23,7 @@ File types planned for inclusion in the near future include:
 Currently supported interpolation algorithms include:
 - Piecewise constant
 - Lerp
-- Hermite (with tangent components)
+- Hermite (without tangent components)
 - Catmull-Rom hermite
 
 Interpolation algorithms planned for inclusion in the near future include:
