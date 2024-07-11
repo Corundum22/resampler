@@ -2,7 +2,21 @@ use std::error::Error;
 use clap::Parser;
 use std::path::Path;
 
-//unsafe { <T as num::NumCast>::from(1).unsafe_unwrap() }
+enum FileData {
+    CSV,
+    Terminal,
+    Nothing,
+}
+
+impl FileData {
+    fn from_string(val: &str) -> FileData {
+        match val.split('.').last().unwrap() {
+            "csv" => FileData::CSV,
+            "terminal" | "console" | "tty" => FileData::Terminal,
+            _ => FileData::Nothing,
+        }
+    }
+}
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -16,6 +30,10 @@ struct Args {
     /// The output side of the resampling ratio
     output_ratio: String,
 
+    #[arg(short, long, default_value ="terminal")]
+    /// The destination file of the samples
+    dest: String,
+    
     #[arg(short, long, default_value ="lerp")]
     interpolation_type: String,
 
@@ -27,35 +45,46 @@ struct Resampler {
     input_samples: Vec<f32>,
     output_samples: Vec<f32>,
     ratio: f32,
+    input_datatype: FileData,
+    output_datatype: FileData,
+    source_name: String,
+    dest_name: String,
 }
 
 impl Resampler {
-    fn new() -> Resampler {
+    fn from_args(args: &Args) -> Resampler {
         return Resampler {
             input_samples: vec![],
             output_samples: vec![],
-            ratio: 1.0,
+            ratio: 
+                args.input_ratio.parse::<f32>().unwrap() /
+                args.output_ratio.parse::<f32>().unwrap(),
+            input_datatype: FileData::from_string(&args.source),
+            output_datatype: FileData::from_string(&args.dest),
+            source_name: args.source.clone(),
+            dest_name: args.dest.clone(),
         };
     }
 
-    fn set_ratio(&mut self, left_ratio: f32, right_ratio: f32) {
-        self.ratio = left_ratio / right_ratio;
-    }
-
+    // Extends the end of input_samples by repeating the last
+    // value n times
     fn repeat_last(&mut self, n: usize) {
-        // Uses clamped end condition for algorithms that use later values
+        // Sets end values for algorithms that use later values
         if let Some(last_ref) = self.input_samples.last() {
             let last_val = *last_ref;
             self.input_samples.append(&mut vec![last_val; n]);
         }
     }
 
+    // Removes the last n input_samples
     fn remove_last(&mut self, n: usize) {
         for _k in 0..n {
             self.input_samples.pop();
         }
     }
 
+    // Performs piecewise constant interpolation and outputs
+    // to output_samples
     fn do_piecewise_constant(&mut self) {
         let mut f: f32 = 0.0;
         
@@ -70,6 +99,7 @@ impl Resampler {
         }
     }
 
+    // Performs lerp and outputs to output_samples
     fn do_lerp(&mut self) {
         let mut f: f32 = 0.0;
         
@@ -86,6 +116,8 @@ impl Resampler {
         }
     }
 
+    // Performs cubic spline interpolation without the tangent
+    // components and outputs to output_samples
     fn do_tangentless_hermite(&mut self) {
         let mut f: f32 = 0.0;
         
@@ -100,6 +132,8 @@ impl Resampler {
         }
     }
 
+    // Performs Catmull-Rom cubic spline interpolation and
+    // outputs to output_samples
     fn do_catmull_rom_spline(&mut self) {
         self.repeat_last(2);
 
@@ -138,11 +172,39 @@ impl Resampler {
         self.remove_last(2);
     }
 
-    fn csv_fill(&mut self, filename: &str) -> Result<(), Box<dyn Error>> {
-        let mut csv_reader = csv::Reader::from_path(Path::new(filename))
-            .expect("Could not read file!");
+    // Gets data depending on the currently set data value
+    fn data_get(&mut self) -> Result<(), Box<dyn Error>> {
+        match self.input_datatype {
+            FileData::CSV => self.csv_get(),
+            _ => panic!("data_get() failed!"),
+        };
+
+        Ok(())
+    }
+
+    fn csv_get(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut csv_reader = csv::Reader::from_path(Path::new(self.source_name.as_str()))
+            .expect("Could not get csv reader!");
         for result in csv_reader.records() {
             self.input_samples.push(result?.get(0).unwrap().parse::<f32>()?);
+        }
+
+        Ok(())
+    }
+
+    fn data_put(&mut self) -> Result<(), Box<dyn Error>> {
+        match self.output_datatype {
+            FileData::CSV => self.csv_put(),
+            FileData::Terminal => Ok(println!("{:?}", self.output_samples)),
+            _ => panic!("Undefined file data!"),
+        }
+    }
+
+    fn csv_put(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut csv_writer = csv::Writer::from_path(Path::new(self.dest_name.as_str()))
+            .expect("Could not get csv writer!");
+        for val in self.output_samples.iter() {
+            csv_writer.write_record(&[format!("{val}")]);
         }
 
         Ok(())
@@ -184,17 +246,9 @@ fn even_hermite(pos_0: f32, pos_1: f32, m_0: f32, m_1: f32, t: f32) -> f32 {
 fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
-    let mut resampler = Resampler::new();
-    resampler.set_ratio(
-        args.input_ratio.parse::<f32>().unwrap(),
-        args.output_ratio.parse::<f32>().unwrap()
-    );
+    let mut resampler = Resampler::from_args(&args);
 
-    match args.source.as_str().split('.').last() {
-        Some("csv") => resampler.csv_fill(args.source.as_str()),
-        _ => panic!("Source file extension was not valid!"),
-    };
-
+    resampler.data_get()?;
 
     match args.interpolation_type.to_lowercase().as_str() {
         "lerp" | "linear" | "l" => resampler.do_lerp(),
@@ -205,7 +259,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         _ => panic!("Interpolation type not found!"),
     }
 
-    println!("{:?} {:?}", resampler.input_samples, resampler.output_samples);
+    resampler.data_put()?;
 
     Ok(())
 }
