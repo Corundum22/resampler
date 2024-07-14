@@ -1,6 +1,6 @@
 use std::error::Error;
 use clap::Parser;
-use resampler::resamplers::{core, do_algorithm, file_use};
+use resampler::resamplers::core;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -38,14 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     
     resampler.data_get()?;
 
-    match args.interpolation_type.to_lowercase().as_str() {
-        "lerp" | "linear" | "l" => resampler.do_lerp(),
-        "piecewise_constant" | "piecewise" | "piece" | "p"
-            => resampler.do_piecewise_constant(),
-        "tangentless_hermite" | "th" => resampler.do_tangentless_hermite(),
-        "catmull_rom" | "cat" | "cr" => resampler.do_catmull_rom_spline(),
-        _ => panic!("Interpolation type not found!"),
-    }
+    resampler.do_resample(args.interpolation_type.clone());
 
     resampler.data_put()?;
 
