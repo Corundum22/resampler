@@ -1,5 +1,6 @@
 use std::error::Error;
 use std::path::Path;
+use std::io;
 use super::core;
 use crate::filedata::FileData;
 
@@ -8,8 +9,22 @@ impl core::Resampler {
     pub fn data_get(&mut self) -> Result<(), Box<dyn Error>> {
         match self.input_datatype {
             FileData::CSV => self.csv_get(),
+            FileData::Terminal => self.terminal_get(),
             _ => panic!("data_get() failed!"),
         };
+
+        Ok(())
+    }
+
+    fn terminal_get(&mut self) -> Result<(), Box<dyn Error>> {
+        let mut input = String::new();
+        
+        println!("Please enter numbers like 10.0 30.0 23 23.11:");
+        io::stdin().read_line(&mut input)?;
+
+        for val in input.split(' ') {
+            self.input_samples.push(val.parse::<f32>()?);
+        }
 
         Ok(())
     }
@@ -27,9 +42,13 @@ impl core::Resampler {
     pub fn data_put(&mut self) -> Result<(), Box<dyn Error>> {
         match self.output_datatype {
             FileData::CSV => self.csv_put(),
-            FileData::Terminal => Ok(println!("{:?}", self.output_samples)),
+            FileData::Terminal => self.terminal_put(),
             _ => panic!("Undefined file data!"),
         }
+    }
+
+    fn terminal_put(&self) -> Result<(), Box<dyn Error>> {
+        Ok(println!("{:?}", self.output_samples))
     }
 
     fn csv_put(&mut self) -> Result<(), Box<dyn Error>> {

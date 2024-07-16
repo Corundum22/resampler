@@ -10,7 +10,8 @@ Resampler is a resampling program that resamples any supported file at the desir
 - [License](#license)
 
 ## File Types
-Currently supported files types are:
+Currently supported file types are:
+- Terminal
 - CSV: reads the first column, ignoring the first row (headers are often in the first row)
 
 File types planned for inclusion in the near future include:
