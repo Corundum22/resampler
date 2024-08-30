@@ -8,6 +8,7 @@ pub struct Resampler {
     pub(super) output_datatype: FileData,
     pub(super) source_name: String,
     pub(super) dest_name: String,
+    pub(super) row_len: Vec<u32>,
 }
 
 impl Resampler {
@@ -25,6 +26,7 @@ impl Resampler {
             output_datatype: FileData::from_string(&dest),
             source_name: source.clone(),
             dest_name: dest.clone(),
+            row_len: Vec::new(),
         }
     }
 

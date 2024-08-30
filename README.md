@@ -1,5 +1,5 @@
 # Resampler
-Resampler is a resampling program that resamples any supported file at the desired ratio using the desired interpolation algorithm.
+Resampler is a CPU-based resampling program that resamples any supported file at the desired ratio using the desired interpolation algorithm.
 
 ## Table of Contents
 - [File Types](#file-types)
@@ -30,10 +30,6 @@ Currently supported interpolation algorithms include:
 Interpolation algorithms planned for inclusion in the near future include:
 - Cardinal hermite
 - Interpolation filter
-
-## Potential Features
-Some potential features for the distant future include:
-- GPU interpolation option
 
 ## Building
 Build with cargo: ```cargo build```

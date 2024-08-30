@@ -19,12 +19,20 @@ impl core::Resampler {
     fn terminal_get(&mut self) -> Result<(), Box<dyn Error>> {
         let mut input = String::new();
         
-        println!("Please enter numbers like 10.0 30.0 23 23.11:");
+        println!("Please enter numbers like 10.0 30.0; 23 23.11 (semicolon separates rows of data)");
         io::stdin().read_line(&mut input)?;
 
-        for val in input.split(' ') {
-            self.input_samples.push(val.parse::<f32>()?);
+        for row in input.split("; ") {
+            let mut row_len_count: u32 = 0;
+
+            for val in row.split(' ') {
+                self.input_samples.push(val.parse::<f32>()?);
+            }
+
+            self.row_len.push(row_len_count);
         }
+
+        dbg!(&self.row_len);
 
         Ok(())
     }
