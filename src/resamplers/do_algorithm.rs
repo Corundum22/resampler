@@ -20,10 +20,12 @@ impl core::Resampler {
     fn do_piecewise_constant(&mut self) {
         let mut f: f32 = 0.0;
         
-        while f <= (self.input_samples.len() - 1) as f32 {
+        while f < (self.input_samples.len() - 1) as f32 {
+            let k = f.floor() as usize;
+
             self.output_samples.push(piecewise_constant(
-                    self.input_samples[f.floor() as usize],
-                    self.input_samples[f.floor() as usize + 1],
+                    self.input_samples[k],
+                    self.input_samples[k + 1],
                     f.fract()
                 )
             );
@@ -35,7 +37,7 @@ impl core::Resampler {
     fn do_lerp(&mut self) {
         let mut f: f32 = 0.0;
         
-        while f <= (self.input_samples.len() - 1) as f32 {
+        while f < (self.input_samples.len() - 1) as f32 {
             let k = f.floor() as usize;
 
             self.output_samples.push(lerp(
@@ -53,7 +55,7 @@ impl core::Resampler {
     fn do_tangentless_hermite(&mut self) {
         let mut f: f32 = 0.0;
         
-        while f <= (self.input_samples.len() - 1) as f32 {
+        while f < (self.input_samples.len() - 1) as f32 {
             self.output_samples.push(tangentless_hermite(
                     self.input_samples[f.floor() as usize],
                     self.input_samples[f.floor() as usize + 1],

@@ -25,14 +25,13 @@ impl core::Resampler {
         for row in input.split("; ") {
             let mut row_len_count: u32 = 0;
 
-            for val in row.split(' ') {
+            for val in row.split(|c: char| c.is_ascii_whitespace()) {
                 self.input_samples.push(val.parse::<f32>()?);
+                row_len_count += 1;
             }
 
             self.row_len.push(row_len_count);
         }
-
-        dbg!(&self.row_len);
 
         Ok(())
     }
